@@ -14,18 +14,18 @@ namespace CSharpDiscordMetrics.CLI
     {
         private readonly HttpClient _httpClient;
         private readonly string _outputPath;
-        private readonly bool _doNotSplitChannelsIntoFiles;
+        private readonly bool _splitChannelsIntoFiles;
         private readonly bool _combineMessagesIntoOneFile;
         
         private const string URL = "https://discord.com/api/v6/channels/{0}/messages?limit=100";
         private static readonly DateTime DateToStart = new DateTime(2020, 06, 01);
 
         public DiscordMessageService(HttpClient httpClient, string outputPath, 
-            bool doNotSplitChannelsIntoFiles, bool combineMessagesIntoOneFile)
+            bool splitChannelsIntoFiles, bool combineMessagesIntoOneFile)
         {
             _httpClient = httpClient;
             _outputPath = outputPath;
-            _doNotSplitChannelsIntoFiles = doNotSplitChannelsIntoFiles;
+            _splitChannelsIntoFiles = splitChannelsIntoFiles;
             _combineMessagesIntoOneFile = combineMessagesIntoOneFile;
         }
         
@@ -67,7 +67,7 @@ namespace CSharpDiscordMetrics.CLI
             {
                 try
                 {
-                    Log.Debug("Processing channel {Name} ({Id})", name, id);
+                    Log.Information("Processing channel {Name} ({Id})", name, id);
                     
                     var messagesInChannel = await ProcessChannel(id, name);
 
@@ -110,7 +110,7 @@ namespace CSharpDiscordMetrics.CLI
 
             while (true)
             {
-                Log.Debug("Performing request {NumberOfRequests} for channel {ChannelName} ({Id})", numberOfRequests, name, id);
+                Log.Information("Performing request {NumberOfRequests} for channel {ChannelName} ({Id})", numberOfRequests, name, id);
                 
                 var requestUrl = string.Format(URL, id);
 
@@ -152,7 +152,7 @@ namespace CSharpDiscordMetrics.CLI
                 numberOfRequests++;
             }
 
-            if (!_doNotSplitChannelsIntoFiles)
+            if (_splitChannelsIntoFiles)
             {
                 Log.Information("Adding channel messages into file...");
                 

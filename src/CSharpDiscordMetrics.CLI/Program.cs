@@ -32,8 +32,6 @@ C:::::C              #::::::::::::::::::::::::#
      CCC::::::::::::C     ######    ######     
         CCCCCCCCCCCCC                          
 ");
-            
-            Console.WriteLine("CSharp Discord Metrics CLI");
 
             var logLevelSwitch = new LoggingLevelSwitch { MinimumLevel = LogEventLevel.Information };
 
@@ -44,7 +42,7 @@ C:::::C              #::::::::::::::::::::::::#
             var rootCommand = new RootCommand
             {
                 new Option<string?>(new[] {"--token", "-t"}, () => null, "Set output to be verbose"),
-                new Option<bool>("--no-split", () => false, "Generates split JSON files for each channel in guild"),
+                new Option<bool>("--split-channels", () => true, "Generates split JSON files for each channel in guild"),
                 new Option<bool>("--combine", () => true, "Generates one JSON file at the end of the process, with all messages from all channels"),
                 new Option<string?>("--output", () => "output", "Generates one JSON file at the end of the process, with all messages from all channels"),
                 new Option<bool>("--verbose", () => false, "Set output to be verbose"),
@@ -53,7 +51,7 @@ C:::::C              #::::::::::::::::::::::::#
             
             rootCommand.Description = "CSharp Discord Metrics CLI";
             
-            rootCommand.Handler = CommandHandler.Create<string?, bool, bool, string?, bool, string?>(async (token, noSplit, combine, output, verbose, logFile) =>
+            rootCommand.Handler = CommandHandler.Create<string?, bool, bool, string?, bool, string?>(async (token, splitChannels, combine, output, verbose, logFile) =>
             {
                 if (verbose)
                 {
@@ -75,27 +73,32 @@ C:::::C              #::::::::::::::::::::::::#
                     token = Console.ReadLine();
                 }
 
-                while (string.IsNullOrWhiteSpace(output) || !Directory.Exists(output))
+                while (string.IsNullOrWhiteSpace(output))
                 {
                     Log.Warning("Output path for JSON files not provided or doesn't exist, please provide a path now");
 
                     output = Console.ReadLine();
                 }
 
+                if (!Directory.Exists(output))
+                {
+                    Directory.CreateDirectory(output);
+                }
+
                 Log.Debug("Starting Discord metrics CLI with provided options");
                 
-                await Run(token!, output!, noSplit, combine);
+                await Run(token!, output!, splitChannels, combine);
             });
             
             await rootCommand.InvokeAsync(args);
         }
 
-        private static async Task Run(string token, string output, bool doNotSplitChannelsIntoFiles, bool combineMessagesIntoOneFile)
+        private static async Task Run(string token, string output, bool splitChannels, bool combineMessagesIntoOneFile)
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bot", token);
             
-            var service = new DiscordMessageService(client, output, doNotSplitChannelsIntoFiles, combineMessagesIntoOneFile);
+            var service = new DiscordMessageService(client, output, splitChannels, combineMessagesIntoOneFile);
 
             await service.GetMessages();
         }
