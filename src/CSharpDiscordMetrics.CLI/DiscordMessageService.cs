@@ -18,7 +18,7 @@ namespace CSharpDiscordMetrics.CLI
         private readonly bool _combineMessagesIntoOneFile;
         
         private const string URL = "https://discord.com/api/v6/channels/{0}/messages?limit=100";
-        private static readonly DateTime DateToStart = new DateTime(2020, 06, 01);
+        private static readonly DateTime DateToStart = new DateTime(2016, 02, 01);
 
         public DiscordMessageService(HttpClient httpClient, string outputPath, 
             bool splitChannelsIntoFiles, bool combineMessagesIntoOneFile)
